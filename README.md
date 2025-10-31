@@ -4,7 +4,31 @@ A lightweight **CPU temperature and frequency monitor** for Linux with a **syste
 
 Built with **Python + PyQt5**, designed for minimalism, reliability, and practical everyday use.
 
----
+## 💡 Background
+
+I created this tool after experiencing fan control issues on my laptop —
+the cooling fan sometimes failed to start, causing the CPU to overheat under load.
+
+To prevent potential thermal damage, I wanted a simple software-based safety layer
+that would automatically throttle the CPU frequency if the temperature exceeded a critical threshold.
+
+While the project began as a personal experiment, it evolved into a small educational tool for exploring:
+
+- CPU temperature monitoring via /sys/class/hwmon
+- Dynamic frequency scaling
+- Safe privilege escalation using sudoers
+- PyQt5 tray UI design for system tools
+
+## ⚠️ Disclaimer & Safety Notes
+
+This project is intended for educational and self-experimentation purposes only.
+It is not recommended for production environments or long-term hardware management.
+
+- ⚙️ If your laptop’s fan and cooling system work properly,
+you should rely on the built-in thermal protection mechanisms provided by your BIOS, OS, and CPU firmware.
+Modern CPUs automatically adjust frequency or shut down safely when overheating.
+- 🧯 This utility is not a substitute for hardware cooling or proper fan control.
+- 💻 Use it at your own risk — the author takes no responsibility for damage caused by misuse.
 
 ## 🌟 Features
 
@@ -16,8 +40,6 @@ Built with **Python + PyQt5**, designed for minimalism, reliability, and practic
 - 🧯 Auto-throttles CPU to the lowest available frequency when temperature exceeds 90°C
 - 🪶 Clean and responsive PyQt5 interface
 - 🛡️ No root needed at runtime (uses `pkexec` or `sudo -n` when required)
-
----
 
 ## 🧰 Requirements
 
@@ -78,7 +100,6 @@ Tray Actions
 | 81°C      | `alarm2.wav` | ⚠ CPU Overheating: 81°C                 |
 | 86°C      | `alarm3.wav` | ⚠ CPU Overheating: 86°C                 |
 | 90°C      | `alarm4.wav` | ⚠ CPU Overheating: 90°C (auto throttle) |
-
 
 ## ⚙️ Frequency Control Script
 
