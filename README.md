@@ -13,7 +13,7 @@ Built with **Python + PyQt5**, designed for minimalism, reliability, and practic
 - 🔔 Non-blocking popup alerts at custom thresholds
 - 🔉 Optional alert sounds per warning level
 - ⚙️ Manual CPU frequency control (per core via submenu or popup)
-- 🧯 Auto-throttles CPU to 400 MHz when temperature exceeds 90°C
+- 🧯 Auto-throttles CPU to the lowest available frequency when temperature exceeds 90°C
 - 🪶 Clean and responsive PyQt5 interface
 - 🛡️ No root needed at runtime (uses `pkexec` or `sudo -n` when required)
 
@@ -39,7 +39,7 @@ Clone this repository and make the main script executable:
 ```bash
 git clone https://github.com/<your-username>/cpu-temp-tray.git
 cd cpu-temp-tray
-chmod +x cpu_temp_tray.py
+chmod +x cpu_temp_tray.py set_cpu_freq.sh
 ```
 
 Optionally, copy the script to a local binary path:
@@ -63,11 +63,11 @@ Tray Actions
 
 | Action                 | Description                             |
 | ---------------------- | --------------------------------------- |
-| 🖱️ Left click         | Opens quick frequency control popup     |
-| 🖱️ Right click        | Opens main context menu                 |
+| 🖱️ Left click          | Opens quick frequency control popup     |
+| 🖱️ Right click         | Opens main context menu                 |
 | ⚙️ *Set CPU Frequency* | Manually set frequency across all cores |
-| 🔥 *Auto-throttle*     | Automatically sets 400 MHz at 90°C      |
-| ❌ *Quit*               | Exit the app                            |
+| 🔥 *Auto-throttle*     | Automatically sets lowest freq at 90°C  |
+| ❌ *Quit*              | Exit the app                            |
 
 
 🔊 Alert Levels
