@@ -2,7 +2,7 @@
 
 A lightweight **CPU temperature and frequency monitor** for Linux with a **system tray icon**, alert popups, and optional **automatic frequency throttling** to prevent overheating.
 
-Built with **Python + PyQt5**, designed for minimalism, reliability, and practical everyday use.
+Built with **Python + PyQt5**, designed for minimalism and reliability.
 
 ## 💡 Background
 
