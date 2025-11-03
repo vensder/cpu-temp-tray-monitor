@@ -48,7 +48,7 @@ Modern CPUs automatically adjust frequency or shut down safely when overheating.
 - **pulseaudio-utils** (for `paplay`)
 - Access to `/sys/class/thermal/` and `/sys/devices/system/cpu/` (standard on most Linux distros)
 
-You can install dependencies via:
+On Ubuntu you can install dependencies via:
 
 ```bash
 sudo apt install python3-pyqt5 pulseaudio-utils
@@ -68,6 +68,12 @@ Optionally, copy the script to a local binary path:
 
 ```bash
 sudo cp cpu_temp_tray.py /usr/local/bin/cpu_temp_tray
+```
+
+On NixOS run:
+
+```bash
+nix-shell
 ```
 
 ## 🔧 Usage
