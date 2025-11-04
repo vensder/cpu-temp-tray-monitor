@@ -27,7 +27,9 @@ class CpuTempTray:
 
         # Tray Icon
         self.tray = QSystemTrayIcon(
-            QIcon.fromTheme("preferences-devices-cpu"), self.app
+            # QIcon.fromTheme("preferences-devices-cpu"),
+            QIcon('icons/preferences-devices-cpu.png'),
+            self.app
         )
         self.tray.setToolTip("CPU Temperature Monitor")
         self.tray.setVisible(True)

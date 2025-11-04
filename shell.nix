@@ -12,7 +12,9 @@ pkgs.mkShell {
       # Add other python packages here as needed (e.g., numpy)
     ]))
     # Include the full Qt5 suite for all necessary plugins and tools
-    pkgs.qt5.full
+    # pkgs.qt5.full
+    pkgs.qt5.qtbase
+    pkgs.qt5.qtsvg
   ];
 
   # Commands to run when entering the shell
@@ -29,5 +31,7 @@ pkgs.mkShell {
     # Install packages from requirements.txt
     pip install -r requirements.txt
     echo "Python environment is ready and activated."
+    export SHELL=/usr/bin/bash
+    echo "SHELL variable set to $SHELL for host compatibility."
   '';
 }
