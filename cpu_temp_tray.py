@@ -128,9 +128,9 @@ class CpuTempTray:
                 if temp >= 90 and (self.last_set_freq_mhz is None or self.last_set_freq_mhz > 400):
                     print("Overheat protection: setting CPU frequency to 400 MHz")
                     # Call the sudo script without prompting
-                    subprocess.run(["sudo", "-n", "/usr/local/bin/set_cpu_freq.sh", "400"])
+                    # subprocess.run(["sudo", "-n", "/usr/local/bin/set_cpu_freq.sh", "400"])
 
-                subprocess.run(["paplay", sound_path])
+                # subprocess.run(["paplay", sound_path])
                 # self.tray_icon.showMessage("CPU Alert", message, QSystemTrayIcon.Critical)
                 self.show_alert(message)
                 break
