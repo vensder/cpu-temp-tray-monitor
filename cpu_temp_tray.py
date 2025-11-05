@@ -25,6 +25,9 @@ class CpuTempTray:
     def __init__(self):
         self.app = QApplication(sys.argv)
 
+        # CRITICAL FIX: Prevent app from quitting when dialogs close
+        self.app.setQuitOnLastWindowClosed(False)
+
         # Tray Icon
         self.tray = QSystemTrayIcon(
             # QIcon.fromTheme("preferences-devices-cpu"),
@@ -43,30 +46,30 @@ class CpuTempTray:
         alert = None  # Initialize as None
         self.active_alerts = []
 
-
-        # # Add frequency submenu -- not working
-        # freq_menu = QMenu("Set CPU Frequency")
-        # for freq in [400, 800, 1600, 2000, 3000, 4000]:
-        #     action = QAction(f"Set to {freq}MHz")
-        #     action.triggered.connect(
-        #         lambda _, f=freq: self.set_cpu_frequency_all_cores(f)
-        #     )
-        #     freq_menu.addAction(action)
-        # self.menu.addMenu(freq_menu)
-
         # Quit
         self.quit_action = QAction("Quit")
         self.quit_action.triggered.connect(self.app.quit)
         self.menu.addAction(self.quit_action)
         self.tray.setContextMenu(self.menu)
 
-        # Thresholds and sounds
+        # Get the directory where the script is located (for absolute paths)
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Thresholds and sounds (using absolute paths from script location)
         self.thresholds = [
-            (71, "/home/vensder/sounds/alarm1.wav", "Temperature above 71°C"),
-            (81, "/home/vensder/sounds/alarm2.wav", "⚠️ CPU Overheating: 81°C!"),
-            (86, "/home/vensder/sounds/alarm3.wav", "⚠️ CPU Overheating: 86°C!"),
-            (90, "/home/vensder/sounds/alarm4.wav", "⚠️ CPU Overheating: 90°C!"),
+            (71, f"{script_dir}/sounds/alarm1.wav", "Temperature above 71°C"),
+            (81, f"{script_dir}/sounds/alarm2.wav", "⚠️ CPU Overheating: 81°C!"),
+            (86, f"{script_dir}/sounds/alarm3.wav", "⚠️ CPU Overheating: 86°C!"),
+            (90, f"{script_dir}/sounds/alarm4.wav", "⚠️ CPU Overheating: 90°C!"),
         ]
+
+        # Alternative: If you always run from the script directory, use relative paths:
+        # self.thresholds = [
+        #     (71, "sounds/alarm1.wav", "Temperature above 71°C"),
+        #     (81, "sounds/alarm2.wav", "⚠️ CPU Overheating: 81°C!"),
+        #     (86, "sounds/alarm3.wav", "⚠️ CPU Overheating: 86°C!"),
+        #     (90, "sounds/alarm4.wav", "⚠️ CPU Overheating: 90°C!"),
+        # ]
 
         self.last_triggered_level = 0
 
@@ -113,6 +116,8 @@ class CpuTempTray:
     def check_temp(self):
         temp = self.get_cpu_temp()
         freqs = self.get_current_cpu_freqs()
+        available_freqs = self.get_available_frequencies()
+        min_freq = available_freqs[0]
 
         if freqs:
             avg_freq = sum(freqs) // len(freqs)
@@ -125,27 +130,27 @@ class CpuTempTray:
                 self.last_triggered_level = threshold
 
                 # 🔥 Move this inside the alert condition but BEFORE blocking UI
-                if temp >= 90 and (self.last_set_freq_mhz is None or self.last_set_freq_mhz > 400):
-                    print("Overheat protection: setting CPU frequency to 400 MHz")
+                if temp >= 90 and (self.last_set_freq_mhz is None or self.last_set_freq_mhz > min_freq):
+                    print("Overheat protection: setting CPU frequency to min_freq")
                     # Call the sudo script without prompting
-                    # subprocess.run(["sudo", "-n", "/usr/local/bin/set_cpu_freq.sh", "400"])
+                    # subprocess.run(["sudo", "-n", "/usr/local/bin/set_cpu_freq.sh", min_freq])
 
-                # subprocess.run(["paplay", sound_path])
+                subprocess.run(["paplay", sound_path])
                 # self.tray_icon.showMessage("CPU Alert", message, QSystemTrayIcon.Critical)
                 self.show_alert(message)
                 break
 
         # for threshold, sound_path, message in sorted(self.thresholds):
-        #     if temp >= threshold and self.last_triggered_level < threshold:
-        #         self.last_triggered_level = threshold
-        #         subprocess.run(["paplay", sound_path])
-        #         self.show_alert(message)
-        #         break
+            if temp >= threshold and self.last_triggered_level < threshold:
+                self.last_triggered_level = threshold
+                subprocess.run(["paplay", sound_path])
+                self.show_alert(message)
+                break
 
-        # # Auto-reduce CPU frequency if temperature is dangerously high
-        # if temp >= 90 and (self.last_set_freq_mhz is None or self.last_set_freq_mhz > 400):
-        #     print("Overheat protection: setting CPU frequency to 400 MHz")
-        #     self.set_cpu_frequency_all_cores(400, use_sudo=True)
+        # Auto-reduce CPU frequency if temperature is dangerously high
+        if temp >= 90 and (self.last_set_freq_mhz is None or self.last_set_freq_mhz > min_freq):
+            print("Overheat protection: setting CPU frequency to min_freq")
+            self.set_cpu_frequency_all_cores(min_freq, use_sudo=True)
 
 
         if temp < self.thresholds[0][0]:
@@ -178,31 +183,9 @@ class CpuTempTray:
     def set_cpu_frequency_all_cores(self, freq_mhz, use_sudo=False):
         mhz = freq_mhz * 1000
         self.last_set_freq_mhz = freq_mhz  # Save it for tooltip
-        # script_path = "/usr/local/bin/set_cpu_freq.sh"
         # Inside the same directory as the Python script
         SCRIPT_NAME = "set_cpu_freq.sh"
         script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), SCRIPT_NAME)
-
-        # if not os.path.exists(script_path):
-        #     # Create and install the script once if needed
-        #     script_lines = [
-        #         "#!/bin/bash",
-        #         "AVAILABLE=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors)",
-        #         'if echo \"$AVAILABLE\" | grep -q userspace; then',
-        #         "  GOV=userspace",
-        #         "else",
-        #         "  GOV=performance",
-        #         "fi",
-        #         "for CPUFREQ in /sys/devices/system/cpu/cpu[0-9]*/cpufreq; do",
-        #         '  echo $GOV > \"$CPUFREQ/scaling_governor\"',
-        #         f'  echo {mhz} > \"$CPUFREQ/scaling_min_freq\"',
-        #         f'  echo {mhz} > \"$CPUFREQ/scaling_max_freq\"',
-        #         "done",
-        #     ]
-
-        #     with open(script_path, "w") as f:
-        #         f.write("\n".join(script_lines))
-        #     os.chmod(script_path, 0o755)
 
         # Run with appropriate privilege escalation
         if use_sudo:
@@ -266,10 +249,10 @@ class CpuTempTray:
         # Convert to MHz
         min_mhz = min_freq // 1000
         max_mhz = max_freq // 1000
-        
+
         # Generate frequency list with given step (e.g. 400 MHz)
         freqs = list(range(min_mhz, max_mhz + step, step))
-        
+
         # Ensure min/max are included
         if freqs[-1] != max_mhz:
             freqs[-1] = max_mhz
@@ -278,15 +261,7 @@ class CpuTempTray:
         if len(freqs) > 1:
             freqs = freqs[:-1]
 
-        print(freqs)
         return freqs
-
-    # def show_popup_menu(self):
-    #     msg = QMessageBox()
-    #     msg.setWindowTitle("CPU Tray Menu")
-    #     msg.setText("Choose an action:")
-    #     msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-    #     msg.exec_()
 
     def show_popup_menu(self):
         dialog = QDialog()
@@ -295,10 +270,10 @@ class CpuTempTray:
 
         label = QLabel("Select CPU frequency:")
         layout.addWidget(label)
-        
+
         available_freqs = self.get_available_frequencies()
 
-        for freq in available_freqs: # [400, 800, 1600, 2000, 3000, 4000]:
+        for freq in available_freqs:
             button = QPushButton(f"{freq} MHz")
             button.clicked.connect(lambda _, f=freq: self.set_freq_and_close(dialog, f))
             layout.addWidget(button)
